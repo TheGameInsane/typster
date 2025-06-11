@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="./output.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
+        rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Qwigley&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fruktur:ital@0;1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gluten:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Eater&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=arrow_selector_tool,replay" />
+
+    <!-- <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=replay" /> -->
+
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+        }
+
+        .scroll-hide {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .scroll-hide::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="font-ubuntu">
+    <!-- Blinker -->
+    <div id="blinker"></div>
+
+    <div class="flex flex-col items-center justify-center">
+        <!-- Mode Selector -->
+        <div class="flex justify-evenly w-[50%] mx-auto mt-10 text-gray-500 " id="mode-selectors">
+            <div class="flex">
+                <h1 class="mx-2 hover:cursor-pointer modeWords" id="modes">words</h1>
+                <h1 class="mx-2 hover:cursor-pointer modeTime" id="modes">time</h1>
+            </div>
+            <div class="flex">
+                <h1 class="words" id="modeValues">10</h1>
+                <h1 class="words" id="modeValues">25</h1>
+                <h1 class="words" id="modeValues">50</h1>
+                <h1 class="words" id="modeValues">100</h1>
+                <h1 class="duration" id="modeValues">10</h1>
+                <h1 class="duration" id="modeValues">15</h1>
+                <h1 class="duration" id="modeValues">30</h1>
+                <h1 class="duration" id="modeValues">60</h1>
+            </div>
+        </div>
+
+        <!-- Info -->
+        <div class="flex justify-center items-center pt-5" id="timeContents">
+            <div class="flex items-center justify-center">
+                <h1 class="text-gray-500 text-lg mt-2 px-2">Time</h1>
+                <div
+                    class="p-2 h-15 rounded-full bg-amber-300 flex justify-center items-center select-none text-gray-700 text-xl">
+                    <span id="timer"></span><span class="text-sm text-gray-600 p-1">secs</span>
+                </div>
+            </div>
+            <div class="flex items-center justify-center">
+                <h1 class="text-gray-500 text-lg mt-2 px-2">Words</h1>
+                <div
+                    class="p-2 h-15 rounded-full bg-amber-300 flex justify-center items-center select-none text-gray-700 text-xl">
+                    <span id="wordCount"></span><span class="text-sm text-gray-600 p-1" id="outOfWords"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Input and text container -->
+    <div class="relative w-[80%] mx-auto mt-10 h-[50vh] overflow-hidden shadow-2xl rounded-4xl p-2">
+        <input class="absolute top-0 select-none" type="text" id="input">
+        <div class="absolute flex flex-wrap top-0 transition transform duration-250 ease-in-out" id="textcont"></div>
+    </div>
+
+    <!-- Reset Button -->
+    <div id="reset" class="flex items-center justify-center m-10">
+        <!-- <span class="material-symbols-outlined hover:cursor-pointer">
+            replay
+        </span> -->
+        <img class="w-12 text-black hover:cursor-pointer" src="./assets/replay.svg" alt="">
+    </div>
+
+    <!-- Focus Overlay -->
+    <div id="overlay" class="absolute flex justify-center items-center select-none">
+        <p class="font-light text-gray-700 text-5xl flex">
+            <!-- <span class="material-symbols-outlined scale-175">arrow_selector_tool</span> -->
+            <img class="w-12 text-black" src="./assets/arrow.svg" alt="">
+            Click to focus
+        </p>
+    </div>
+
+    <!-- Results Overlay -->
+    <div id="results"
+        class="flex absolute top-[50%] left-[50%] transform -translate-x-[50%] -translate-y-[50%] inset-shadow-2xl shadow-2xl bg-white/75 p-20 rounded-4xl">
+        <!-- image -->
+        <div id="disp-img" class="w-50">
+        </div>
+
+        <div class="flex flex-col justify-center items-center">
+            <!-- message -->
+            <h1 class="p-2 text-4xl" id="message"></h1>
+            <div class="flex justify-center items-center pt-5">
+                <div class="flex items-center justify-center">
+                    <!-- wpm -->
+                    <h1 class="text-gray-500 text-lg mt-2 px-2">WPM</h1>
+                    <div
+                        class="p-2 h-15 rounded-full bg-amber-300 flex justify-center items-center select-none text-gray-700 text-xl">
+                        <span id="wpm"></span><span class="text-sm text-gray-600 p-1">Words/min</span>
+                    </div>
+                </div>
+                <div class="flex items-center justify-center ">
+                    <!-- cpm -->
+                    <h1 class="text-gray-500 text-lg mt-2 px-2">CPM</h1>
+                    <div
+                        class="p-2 h-15 rounded-full bg-amber-300 flex justify-center items-center select-none text-gray-700 text-xl">
+                        <span id="cpm"></span><span class="text-sm text-gray-600 p-1">Chars/min</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex">
+                <div class="mt-2 px-2">
+                    <h1 class="text-gray-500 text-lg">Correct Words</h1>
+                    <p id="correct-words"></p>
+                </div>
+                <div class="mt-2 px-2">
+                    <h1 class="text-gray-500 text-lg">Accuracy</h1>
+                    <p id="accuracy"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- <a href="https://www.vecteezy.com/free-vector/symbol">Symbol Vectors by Vecteezy</a> -->
+    <script type="module" src="main.js"></script>
+</body>
+
+</html>

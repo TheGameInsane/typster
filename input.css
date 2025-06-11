@@ -1,0 +1,140 @@
+@import 'tailwindcss';
+
+@theme {
+    --animate-blinker: blinker 1s infinite;
+    --animate-blurer: blurer 1s;
+    --animate-fade-out-upwards: fade-out-upwards 0.5s forwards;
+    --animate-fade-in-upwards: fade-in-upwards 0.5s forwards;
+    --animate-upwards: upwards 0.5 forwards;
+    --animate-fade-in: fade-in 0.5s forwards;
+    --animate-fade-out: fade-out 0.5s forwards;
+
+    --font-ubuntu: 'Ubuntu', sans-serif;
+    --font-rex: "Eater", serif;
+    --font-octopus: "Fruktur", system-ui;
+    --font-snail: "Gluten", cursive;
+
+    @keyframes blinker {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+
+    }
+
+    @keyframes blurer {
+        0% {
+            filter: blur(0px);
+        }
+
+        100% {
+            filter: blur(5px);
+        }
+    }
+
+    @keyframes fade-out-upwards {
+        0% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        100% {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+    }
+
+    @keyframes fade-in-upwards {
+        0% {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    }
+
+    @keyframes upwards {
+        0% {
+            transform: translateY(0);
+        }
+
+        100% {
+            transform: translateY(-50px);
+        }
+    }
+
+    @keyframes fade-in {
+        0% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    @keyframes fade-out {
+        0% {
+            opacity: 1;
+        }
+
+        100% {
+            opacity: 0;
+        }
+    }
+}
+
+#blinker {
+    @apply animate-blinker w-1 h-10 absolute bg-amber-600 transform translate-x-[50%] rounded-4xl transition duration-500 ease-in-out
+}
+
+.words, .duration {
+    @apply hover:cursor-pointer mx-[15%]
+}
+
+input {
+    @apply opacity-0
+}
+
+textarea {
+    word-spacing: 30px;
+}
+
+.letter {
+    @apply text-4xl select-none mt-2
+}
+
+.word {
+    @apply flex px-2 py-1 text-gray-600
+}
+
+.letter.correct {
+    @apply text-green-600
+}
+
+.letter.incorrect {
+    @apply text-red-600 underline
+}
+
+.letter.extra {
+    @apply text-red-800 underline
+}
+
+.letter.skipped {
+    @apply line-through text-gray-400
+}
+
+.activeMode {
+    @apply text-black underline
+}
