@@ -160,7 +160,7 @@ const update = () => {
     currentWordIndex = 0
     wordCount = 0
     scrollAmount = 0
-    setFocus(true)
+    setFocus(false)
 
     wTimer.reset()
     tTimer.reset()
@@ -252,6 +252,9 @@ getWords()
 
 // Result Computation
 const calculateResults = (wordsArray, totalTime) => {
+    textcont.removeEventListener('click', (event) => {
+        setFocus(true)
+    })
     input.removeEventListener('focusout', (event) => {
         setFocus(false)
     })
