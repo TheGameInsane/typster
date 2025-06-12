@@ -91,7 +91,7 @@ class timeTimer {
 }
 
 // All Important Variables
-let scrollAmount, currentWordIndex, wordCount = 0, completed = false, words = [], noWords = 25, duration = 30, mode = 'words', modeValue = 25, wTimer = new wordTimer(), tTimer = new timeTimer()
+let scrollAmount, currentWordIndex, lastIndex, wordCount = 0, completed = false, words = [], noWords = 25, duration = 30, mode = 'words', modeValue = 25, wTimer = new wordTimer(), tTimer = new timeTimer()
 
 // Display an overlay element on focus lost
 let inputFocused = false
@@ -252,6 +252,13 @@ getWords()
 
 // Result Computation
 const calculateResults = (wordsArray, totalTime) => {
+    input.removeEventListener('focusout', (event) => {
+        setFocus(false)
+    })
+    input.removeEventListener('focusin', (event) => {
+        setFocus(true)
+    })
+
     let correctLetter = 0, incorrect = 0, skipped = 0, extra = 0, totalLetters = 0, totalWords = 0, correctWord = 0
     wordsArray.forEach((word) => {
         if (word.classList.contains('completed') && !word.classList.contains('full-skipped')) {
@@ -314,18 +321,18 @@ const calculateResults = (wordsArray, totalTime) => {
 
     resultElement.classList.remove('invisible')
     resetElement.classList.add('animate-fade-in')
+    resultElement.focus()
 }
 
 // Input Handler
 const eventFunc = (event) => {
-    let inputText = event.target.value.toLowerCase().trim()
+    let inputText = event.target.value.toLowerCase()
     let wordsElements = document.querySelectorAll('.word')
     let wordsArray = Array.from(wordsElements)
-    let inputLetters = inputText.split('')
+    let inputLetters = inputText.split('') 
     let currentWord = wordsElements[currentWordIndex]
     let letters = currentWord.querySelectorAll('.letter')
     let currentLetter = letters[inputLetters.length - 1]
-
 
     const finish = () => {
         if (mode == 'words') {
@@ -334,10 +341,8 @@ const eventFunc = (event) => {
         } else if (mode == 'time') {
             calculateResults(wordsArray, duration)
         }
-        blinker.style.display = 'none';
-        ['keydown', 'input'].forEach((eventName) => {
-            input.removeEventListener(eventName, eventFunc)
-        })
+        blinker.style.display = 'none'
+        input.removeEventListener('input', eventFunc)
         textcont.parentElement.classList.remove('shadow-2xl')
     }
 
@@ -355,19 +360,32 @@ const eventFunc = (event) => {
         }
     }
 
-    if (event.key) { //keydown event
-        if (event.key == ' ') {
+    // Start Timer Logic
+    if (currentWordIndex == 0 && inputLetters.length == 1 && (wTimer.isStarted == false || tTimer.isStarted == false)) {
+        startTimer()
+    }
+
+    if (currentWord && inputLetters !== '') {
+
+        if (inputLetters[inputLetters.length - 1] === ' ') {
+            console.log('Space Detected')
+
+            if (inputLetters.length == 0) {
+                currentWord.classList.add('full-skipped')
+            }
+
             input.value = ''
+            inputText = ''
+            inputLetters = []
+            currentLetter = null            
+
+            lastIndex = 0
 
             startTimer()
 
             currentWord.classList.add('completed')
             wordCount += 1
             wordCountElement.textContent = wordCount
-
-            if (inputLetters.length == 0) {
-                currentWord.classList.add('full-skipped')
-            }
 
             let length = letters.length
             let correctNum = 0
@@ -384,128 +402,141 @@ const eventFunc = (event) => {
                 currentWord.classList.add('correct-word')
             }
 
-
             if (currentWordIndex < (wordsElements.length - 1)) {
+                console.log('Moving to next word')
                 currentWordIndex += 1
-                let letterRect = wordsElements[currentWordIndex].firstElementChild.getBoundingClientRect()
-                blinker.style.left = `${letterRect.left - blinker.offsetWidth}px`
-                blinker.style.top = `${letterRect.top}px`
+                currentWord = wordsElements[currentWordIndex]
+                letters = currentWord.querySelectorAll('.letter')
+                console.log(`Current Word Index: ${currentWordIndex}, Input: "${inputText}"`)
+                // let letterRect = wordsElements[currentWordIndex].firstElementChild.getBoundingClientRect()
+                // blinker.style.left = `${letterRect.left - blinker.offsetWidth}px`
+                // blinker.style.top = `${letterRect.top}px`
             }
-        }
-        if (event.key == 'Backspace' && inputLetters.length > 0) {
-            if (letters[inputLetters.length - 1].classList.contains('extra')) {
-                letters[inputLetters.length - 1].remove()
-            } else {
-                letters[inputLetters.length - 1].classList.remove('correct', 'incorrect')
+
+        } else if (lastIndex > inputLetters.length - 1) {
+            // Backspace logic
+            console.log('Backspace Detected')
+
+            letters[inputLetters.length].classList.remove('correct', 'incorrect')
+            if (letters[inputLetters.length].classList.contains('extra')) letters[inputLetters.length].remove()
+
+            if (inputLetters.length == 0) {
+                letters.forEach((letter) => {
+                    letter.classList.remove('correct', 'incorrect', 'skipped')
+
+                    if (letter.classList.contains('extra')) {
+                        letter.remove()
+                    }
+                })
             }
-        }
-        if (event.key == 'Backspace' && event.ctrlKey) {
-            letters.forEach((letter) => {
-                letter.classList.remove('correct', 'incorrect')
-            })
-        }
-    } else { //input event
+            lastIndex = inputLetters.length - 1
+        } else if (letters[inputLetters.length - 1] && inputLetters[inputLetters.length - 1] === letters[inputLetters.length - 1].textContent) {
+            // Correct letter logic
+            console.log('Correct Letter Detected')
 
-        // Start Timer Logic
-        if (currentWordIndex == 0 && inputLetters.length == 1 && (wTimer.isStarted == false || tTimer.isStarted == false)) {
-            startTimer()
-        }
+            letters[inputLetters.length - 1].classList.remove('incorrect')
+            letters[inputLetters.length - 1].classList.add('correct')
+            lastIndex = inputLetters.length - 1
+        } else if (letters[inputLetters.length - 1]) {
+            //Incorrect letter logic
+            console.log('Incorrect Letter Detected')
 
-        //Update active word
-        wordsElements.forEach((wordElement, index) => {
-            if (index == currentWordIndex) {
-                wordElement.classList.add('active')
-            } else {
-                wordElement.classList.remove('active')
-            }
-        })
+            letters[inputLetters.length - 1].classList.add('incorrect')
+            letters[inputLetters.length - 1].classList.remove('correct')
+            lastIndex = inputLetters.length - 1
+        } else if (inputLetters.length > letters.length) {
+            // Extra letters logic
+            console.log('Extra Letter Detected')
 
-        if (currentWord && inputLetters !== '') {
-            if (letters[inputLetters.length - 1] && inputLetters[inputLetters.length - 1] === letters[inputLetters.length - 1].textContent) {
-                // Correct letter logic
-                letters[inputLetters.length - 1].classList.remove('incorrect')
-                letters[inputLetters.length - 1].classList.add('correct')
-            } else if (letters[inputLetters.length - 1]) {
-                //Incorrect letter logic
-                letters[inputLetters.length - 1].classList.add('incorrect')
-                letters[inputLetters.length - 1].classList.remove('correct')
-            } else if (inputLetters.length > letters.length) {
-                // Extra letters logic
-                currentWord.appendChild(document.createElement('p')).textContent = inputLetters[inputLetters.length - 1]
-                currentWord.lastChild.classList.add('letter', 'extra')
-                let letterRect = currentWord.lastChild.getBoundingClientRect()
-                blinker.style.left = `${letterRect.left - blinker.offsetWidth + letterRect.width}px`
-                blinker.style.top = `${letterRect.top}px`
-            }
-        }
-
-        // Blinker Positioning
-        if (currentLetter) {
-            let letterRect = currentLetter.getBoundingClientRect()
+            currentWord.appendChild(document.createElement('p')).textContent = inputLetters[inputLetters.length - 1]
+            currentWord.lastChild.classList.add('letter', 'extra')
+            let letterRect = currentWord.lastChild.getBoundingClientRect()
             blinker.style.left = `${letterRect.left - blinker.offsetWidth + letterRect.width}px`
             blinker.style.top = `${letterRect.top}px`
-        } else if(!currentLetter && inputLetters.length == 0) {
-            let letterRect = currentWord.firstElementChild.getBoundingClientRect()
-            blinker.style.left = `${letterRect.left - blinker.offsetWidth}px`
-            blinker.style.top = `${letterRect.top}px`
+            lastIndex = inputLetters.length - 1
+        } 
+    }
+
+    //Update active word
+    wordsElements.forEach((wordElement, index) => {
+        if (index == currentWordIndex) {
+            wordElement.classList.add('active')
+        } else {
+            wordElement.classList.remove('active')
         }
-        if (currentWordIndex == wordsElements.length - 1 && letters.length == inputLetters.length) {
-            currentWord.classList.add('completed')
-            wordCount += 1
-            wordCountElement.textContent = wordCount
+    })
 
-            let length = letters.length
-            let correctNum = 0
-            letters.forEach((letter) => {
-                if (letter.classList.contains('correct')) correctNum += 1
+    // Blinker Positioning
+    if (currentLetter) {
+        console.log('Current Letter', currentWordIndex, currentWord, currentLetter)
 
-                if (letter.classList.contains('correct') || letter.classList.contains('incorrect')) {
-                    letter.classList.remove('skipped')
-                } else {
-                    letter.classList.add('skipped')
-                }
-            })
-            if (length == correctNum) {
-                currentWord.classList.add('correct-word')
+        let letterRect = currentLetter.getBoundingClientRect()
+        blinker.style.left = `${letterRect.left - blinker.offsetWidth + letterRect.width}px`
+        blinker.style.top = `${letterRect.top}px`
+    } else if (!currentLetter && inputLetters.length == 0) {
+        console.log('No Current Letter', currentWord)
+
+        let letterRect = currentWord.firstElementChild.getBoundingClientRect()
+        blinker.style.left = `${letterRect.left - blinker.offsetWidth}px`
+        blinker.style.top = `${letterRect.top}px`
+    }
+    if (currentWordIndex == wordsElements.length - 1 && letters.length == inputLetters.length) {
+        currentWord.classList.add('completed')
+        wordCount += 1
+        wordCountElement.textContent = wordCount
+
+        let length = letters.length
+        let correctNum = 0
+        letters.forEach((letter) => {
+            if (letter.classList.contains('correct')) correctNum += 1
+
+            if (letter.classList.contains('correct') || letter.classList.contains('incorrect')) {
+                letter.classList.remove('skipped')
+            } else {
+                letter.classList.add('skipped')
             }
-        }
-
-        // End Statement
-        if (wordsElements[wordsElements.length - 1].classList.contains('completed')) {
-            finish()
-        }
-
-        // Scrolling Effect
-        let visibleWords = wordsArray.filter((word) => !word.classList.contains('opacity-0'))
-        let hiddenWords = wordsArray.filter(w => w.classList.contains('opacity-0'))
-
-        if (visibleWords.length && hiddenWords.length) {
-            let firstTop = Math.min(...visibleWords.map((word) => word.offsetTop))
-            let firstHiddenTop = Math.min(...hiddenWords.map((w) => w.offsetTop))
-
-            if (blinker.offsetTop > textcont.parentElement.getBoundingClientRect().height) {
-                let lineHeight = currentWord.offsetHeight
-                scrollAmount += lineHeight
-                textcont.style.transform = `translateY(-${scrollAmount}px)`
-
-                let letterRect = letters[0].getBoundingClientRect()
-                blinker.style.left = `${letterRect.left - blinker.offsetWidth}px`
-                blinker.style.top = `${letterRect.top - lineHeight}px`
-
-                hiddenWords.forEach((wordElement) => {
-                    if (wordElement.offsetTop == firstHiddenTop) {
-                        wordElement.classList.remove('opacity-0')
-                        wordElement.classList.add('animate-fade-in-upwards')
-                    }
-                })
-                visibleWords.forEach((wordElement) => {
-                    if (wordElement.offsetTop == firstTop) {
-                        wordElement.classList.add('animate-fade-out-upwards')
-                    }
-                })
-            }
+        })
+        if (length == correctNum) {
+            currentWord.classList.add('correct-word')
         }
     }
+
+    // End Statement
+    if (wordsElements[wordsElements.length - 1].classList.contains('completed')) {
+        finish()
+    }
+
+    // Scrolling Effect
+    let visibleWords = wordsArray.filter((word) => !word.classList.contains('opacity-0'))
+    let hiddenWords = wordsArray.filter(w => w.classList.contains('opacity-0'))
+
+    if (visibleWords.length && hiddenWords.length) {
+        let firstTop = Math.min(...visibleWords.map((word) => word.offsetTop))
+        let firstHiddenTop = Math.min(...hiddenWords.map((w) => w.offsetTop))
+
+        if (blinker.offsetTop > textcont.parentElement.getBoundingClientRect().height) {
+            let lineHeight = currentWord.offsetHeight
+            scrollAmount += lineHeight
+            textcont.style.transform = `translateY(-${scrollAmount}px)`
+
+            let letterRect = letters[0].getBoundingClientRect()
+            blinker.style.left = `${letterRect.left - blinker.offsetWidth}px`
+            blinker.style.top = `${letterRect.top - lineHeight}px`
+
+            hiddenWords.forEach((wordElement) => {
+                if (wordElement.offsetTop == firstHiddenTop) {
+                    wordElement.classList.remove('opacity-0')
+                    wordElement.classList.add('animate-fade-in-upwards')
+                }
+            })
+            visibleWords.forEach((wordElement) => {
+                if (wordElement.offsetTop == firstTop) {
+                    wordElement.classList.add('animate-fade-out-upwards')
+                }
+            })
+        }
+    }
+    // }
 }
 
 // Event Listeners
@@ -548,10 +579,10 @@ document.querySelectorAll('#modes').forEach((element) => {
 })
 
 // Input Events
-let inputEvents = ['keydown', 'input']
-inputEvents.forEach((eventName) => {
-    input.addEventListener(eventName, eventFunc)
-})
+// let inputEvents = ['keydown', 'input']
+// inputEvents.forEach((eventName) => {
+// })
+input.addEventListener('input', eventFunc)
 
 // Window Resize
 window.addEventListener('resize', () => {
