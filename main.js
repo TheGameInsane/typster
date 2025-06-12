@@ -324,7 +324,6 @@ const calculateResults = (wordsArray, totalTime) => {
 
     resultElement.classList.remove('invisible')
     resetElement.classList.add('animate-fade-in')
-    input.blur()
 }
 
 // Input Handler
@@ -589,7 +588,11 @@ input.addEventListener('input', eventFunc)
 
 // Window Resize
 window.addEventListener('resize', () => {
-    updateText()
+    document.querySelectorAll('.word').forEach((wordElement) => {
+        if (wordElement.offsetTop + wordElement.offsetHeight > textcont.parentElement.offsetHeight) {
+            wordElement.classList.add('opacity-0')
+        }
+    })
     let firstWord = document.querySelector('.word.active')
     let firstLetter = firstWord.querySelector('.letter')
     let letterRect = firstLetter.getBoundingClientRect()
