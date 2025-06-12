@@ -252,6 +252,13 @@ getWords()
 
 // Result Computation
 const calculateResults = (wordsArray, totalTime) => {
+    input.removeEventListener('focusout', (event) => {
+        setFocus(false)
+    })
+    input.removeEventListener('focusin', (event) => {
+        setFocus(true)
+    })
+
     let correctLetter = 0, incorrect = 0, skipped = 0, extra = 0, totalLetters = 0, totalWords = 0, correctWord = 0
     wordsArray.forEach((word) => {
         if (word.classList.contains('completed') && !word.classList.contains('full-skipped')) {
@@ -314,6 +321,7 @@ const calculateResults = (wordsArray, totalTime) => {
 
     resultElement.classList.remove('invisible')
     resetElement.classList.add('animate-fade-in')
+    resultElement.focus()
 }
 
 // Input Handler
