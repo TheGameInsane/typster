@@ -324,8 +324,7 @@ const calculateResults = (wordsArray, totalTime) => {
 
     resultElement.classList.remove('invisible')
     resetElement.classList.add('animate-fade-in')
-    input.remove()
-    resultElement.focus()
+    input.blur()
 }
 
 // Input Handler
